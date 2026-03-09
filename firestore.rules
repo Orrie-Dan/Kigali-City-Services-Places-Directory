@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User profiles
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Listings
+    match /listings/{listingId} {
+      // Any authenticated user can read all listings
+      allow read: if request.auth != null;
+
+      // Create: createdBy must be the authenticated user
+      allow create: if request.auth != null
+        && request.resource.data.createdBy == request.auth.uid;
+
+      // Update/Delete: only the creator can modify
+      allow update, delete: if request.auth != null
+        && resource.data.createdBy == request.auth.uid;
+    }
+  }
+}
+
